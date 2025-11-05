@@ -62,6 +62,12 @@ class AppConstants {
   static const String routeAppointments = '/appointments';
   static const String routeJournal = '/journal';
 
+  // Phase 3: Appointments & Payments Routes
+  static const String routeBookAppointment = '/book-appointment';
+  static const String routeAppointmentPayment = '/appointments/:id/payment';
+  static const String routeSessionNotes = '/session-notes';
+  static const String routeOutcomes = '/outcomes';
+
   // User Roles
   static const String roleClient = 'CLIENT';
   static const String rolePractitioner = 'PRACTITIONER';

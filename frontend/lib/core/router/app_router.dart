@@ -10,6 +10,12 @@ import 'package:sana_app/presentation/screens/onboarding/questionnaire_screen.da
 import 'package:sana_app/presentation/screens/client/dashboard_screen.dart';
 import 'package:sana_app/presentation/screens/client/checkin_screen.dart';
 import 'package:sana_app/presentation/screens/client/recommendations_screen.dart';
+import 'package:sana_app/presentation/screens/appointments/book_appointment_screen.dart';
+import 'package:sana_app/presentation/screens/appointments/appointments_list_screen.dart';
+import 'package:sana_app/presentation/screens/appointments/payment_screen.dart';
+import 'package:sana_app/presentation/screens/practitioner/session_notes_screen.dart';
+import 'package:sana_app/presentation/screens/practitioner/outcomes_screen.dart';
+import 'package:sana_app/data/models/practitioner.dart';
 
 // Splash Screen
 class SplashScreen extends ConsumerStatefulWidget {
@@ -141,9 +147,47 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) =>
             const PlaceholderScreen(title: 'Find Practitioners'),
       ),
+      // Phase 3: Appointments & Payments Routes
       GoRoute(
         path: AppConstants.routeAppointments,
-        builder: (context, state) => const PlaceholderScreen(title: 'Appointments'),
+        builder: (context, state) => const AppointmentsListScreen(),
+      ),
+      GoRoute(
+        path: AppConstants.routeBookAppointment,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          if (extra == null ||
+              !extra.containsKey('practitionerId') ||
+              !extra.containsKey('sessionType')) {
+            return const Scaffold(
+              body: Center(child: Text('Missing booking information')),
+            );
+          }
+          return BookAppointmentScreen(
+            practitionerId: extra['practitionerId'] as String,
+            sessionType: extra['sessionType'] as SessionType,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/appointments/:id/payment',
+        builder: (context, state) {
+          final appointmentId = state.pathParameters['id'];
+          if (appointmentId == null) {
+            return const Scaffold(
+              body: Center(child: Text('Invalid appointment ID')),
+            );
+          }
+          return PaymentScreen(appointmentId: appointmentId);
+        },
+      ),
+      GoRoute(
+        path: AppConstants.routeSessionNotes,
+        builder: (context, state) => const SessionNotesScreen(),
+      ),
+      GoRoute(
+        path: AppConstants.routeOutcomes,
+        builder: (context, state) => const OutcomesScreen(),
       ),
       GoRoute(
         path: AppConstants.routeJournal,
