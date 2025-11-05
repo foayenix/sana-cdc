@@ -83,6 +83,10 @@ model User {
   practitionerConversations Conversation[] @relation("PractitionerConversations")
   sentMessages        Message[] @relation("SentMessages")
   receivedMessages    Message[] @relation("ReceivedMessages")
+  clientPayments      Payment[] @relation("ClientPayments")
+  practitionerPayments Payment[] @relation("PractitionerPayments")
+  clientInvoices      Invoice[] @relation("ClientInvoices")
+  practitionerInvoices Invoice[] @relation("PractitionerInvoices")
 
   @@index([email])
   @@index([googleId])
@@ -153,6 +157,7 @@ model PractitionerProfile {
   availabilitySlots    AvailabilitySlot[]
   timeOffs             TimeOff[]
   availabilityOverrides AvailabilityOverride[]
+  payouts              Payout[]
 
   @@index([userId])
   @@index([verificationStatus])
@@ -491,6 +496,37 @@ enum TimeOffStatus {
   REJECTED
 }
 
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CARD
+  BANK_TRANSFER
+  PAYPAL
+  OTHER
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
 model AvailabilitySlot {
   id              String   @id @default(cuid())
   practitionerId  String
@@ -569,5 +605,132 @@ model AvailabilityOverride {
 
   @@index([practitionerId])
   @@index([date])
+}
+
+// Phase 4 Module 7: Payment & Billing Enhancements
+model Payment {
+  id              String        @id @default(cuid())
+  appointmentId   String
+  clientId        String
+  practitionerId  String
+
+  // Payment details
+  amount          Int           // Amount in pence/cents
+  currency        String        @default("GBP")
+  status          PaymentStatus @default(PENDING)
+  method          PaymentMethod @default(CARD)
+
+  // Stripe integration
+  stripePaymentId String?       @unique
+  stripeChargeId  String?
+
+  // Payment metadata
+  description     String?       @db.Text
+  receiptUrl      String?
+
+  // Refund information
+  refundedAmount  Int?          @default(0)
+  refundedAt      DateTime?
+  refundReason    String?       @db.Text
+
+  // Fees and net amount
+  platformFee     Int?          // Platform commission in pence
+  stripeFee       Int?          // Stripe processing fee in pence
+  netAmount       Int?          // Amount to practitioner after fees
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  completedAt     DateTime?
+
+  client          User          @relation("ClientPayments", fields: [clientId], references: [id])
+  practitioner    User          @relation("PractitionerPayments", fields: [practitionerId], references: [id])
+  invoice         Invoice?
+  payout          Payout?       @relation(fields: [payoutId], references: [id])
+  payoutId        String?
+
+  @@index([clientId])
+  @@index([practitionerId])
+  @@index([appointmentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  paymentId       String        @unique
+  clientId        String
+  practitionerId  String
+
+  // Invoice details
+  invoiceNumber   String        @unique // e.g., "INV-2024-001"
+  status          InvoiceStatus @default(DRAFT)
+
+  // Amounts
+  subtotal        Int           // Before tax
+  taxAmount       Int           @default(0)
+  total           Int           // After tax
+
+  // Dates
+  issueDate       DateTime      @default(now())
+  dueDate         DateTime
+  paidDate        DateTime?
+
+  // PDF generation
+  pdfUrl          String?
+  pdfGeneratedAt  DateTime?
+
+  // Notes
+  notes           String?       @db.Text
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  payment         Payment       @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  client          User          @relation("ClientInvoices", fields: [clientId], references: [id])
+  practitioner    User          @relation("PractitionerInvoices", fields: [practitionerId], references: [id])
+
+  @@index([clientId])
+  @@index([practitionerId])
+  @@index([invoiceNumber])
+  @@index([status])
+  @@index([issueDate])
+}
+
+model Payout {
+  id              String        @id @default(cuid())
+  practitionerId  String
+
+  // Payout details
+  amount          Int           // Total payout amount in pence
+  currency        String        @default("GBP")
+  status          PayoutStatus  @default(PENDING)
+
+  // Stripe Connect
+  stripePayoutId  String?       @unique
+  stripeTransferId String?
+
+  // Period covered
+  periodStart     DateTime
+  periodEnd       DateTime
+
+  // Metadata
+  description     String?       @db.Text
+  paymentCount    Int           @default(0) // Number of payments included
+
+  // Status tracking
+  scheduledFor    DateTime?     // When payout is scheduled
+  completedAt     DateTime?
+  failureReason   String?       @db.Text
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  practitioner    PractitionerProfile @relation(fields: [practitionerId], references: [id])
+  payments        Payment[]
+
+  @@index([practitionerId])
+  @@index([status])
+  @@index([periodStart, periodEnd])
+  @@index([createdAt])
 }
 

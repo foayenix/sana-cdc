@@ -24,6 +24,8 @@ import { SearchModule } from './search/search.module';
 import { MessagesModule } from './messages/messages.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { AdminModule } from './admin/admin.module';
+import { PaymentHistoryModule } from './payment-history/payment-history.module';
+import { PayoutModule } from './payout/payout.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -69,6 +71,8 @@ import { AppService } from './app.service';
     MessagesModule,
     AvailabilityModule,
     AdminModule,
+    PaymentHistoryModule,
+    PayoutModule,
   ],
   controllers: [AppController],
   providers: [AppService],
