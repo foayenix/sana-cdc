@@ -88,6 +88,9 @@ class AppConstants {
   static const String routeMessages = '/messages';
   static const String routeChat = '/messages/:id';
 
+  // Phase 4: Availability Routes
+  static const String routeAvailabilityManagement = '/availability-management';
+
   // User Roles
   static const String roleClient = 'CLIENT';
   static const String rolePractitioner = 'PRACTITIONER';

@@ -24,6 +24,7 @@ import 'package:sana_app/presentation/screens/reviews/reviews_list_screen.dart';
 import 'package:sana_app/presentation/screens/search/practitioner_search_screen.dart';
 import 'package:sana_app/presentation/screens/messages/conversations_list_screen.dart';
 import 'package:sana_app/presentation/screens/messages/chat_screen.dart';
+import 'package:sana_app/presentation/screens/availability/availability_management_screen.dart';
 import 'package:sana_app/data/models/practitioner.dart';
 import 'package:sana_app/data/models/message.dart';
 
@@ -256,6 +257,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             otherUser: extra?['otherUser'] as ConversationUser?,
           );
         },
+      ),
+      // Phase 4: Availability Routes
+      GoRoute(
+        path: AppConstants.routeAvailabilityManagement,
+        builder: (context, state) => const AvailabilityManagementScreen(),
       ),
       GoRoute(
         path: AppConstants.routeJournal,
