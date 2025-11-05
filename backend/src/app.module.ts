@@ -21,6 +21,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { SearchModule } from './search/search.module';
+import { MessagesModule } from './messages/messages.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -63,6 +64,7 @@ import { AppService } from './app.service';
     AnalyticsModule,
     ReviewsModule,
     SearchModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
