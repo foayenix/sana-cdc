@@ -22,6 +22,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { SearchModule } from './search/search.module';
 import { MessagesModule } from './messages/messages.module';
+import { AvailabilityModule } from './availability/availability.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -65,6 +66,7 @@ import { AppService } from './app.service';
     ReviewsModule,
     SearchModule,
     MessagesModule,
+    AvailabilityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -144,12 +144,15 @@ model PractitionerProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sessionTypes  SessionType[]
-  appointments  Appointment[]
-  sessionNotes  SessionNote[]
-  stripeAccount StripeAccount?
-  reviews       Review[]
+  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionTypes         SessionType[]
+  appointments         Appointment[]
+  sessionNotes         SessionNote[]
+  stripeAccount        StripeAccount?
+  reviews              Review[]
+  availabilitySlots    AvailabilitySlot[]
+  timeOffs             TimeOff[]
+  availabilityOverrides AvailabilityOverride[]
 
   @@index([userId])
   @@index([verificationStatus])
@@ -469,5 +472,102 @@ model Message {
   @@index([receiverId])
   @@index([createdAt])
   @@index([read])
+}
+
+// Phase 4 Module 6: Calendar & Scheduling
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum TimeOffStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model AvailabilitySlot {
+  id              String   @id @default(cuid())
+  practitionerId  String
+
+  // Recurring availability pattern
+  dayOfWeek       DayOfWeek
+  startTime       String   // Format: "09:00"
+  endTime         String   // Format: "17:00"
+
+  // Effective date range (for seasonal schedules)
+  effectiveFrom   DateTime?
+  effectiveTo     DateTime?
+
+  // Template/label (e.g., "Summer Schedule", "Default")
+  label           String?
+  isActive        Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  practitioner    PractitionerProfile @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+
+  @@index([practitionerId])
+  @@index([dayOfWeek])
+  @@index([isActive])
+}
+
+model TimeOff {
+  id              String        @id @default(cuid())
+  practitionerId  String
+
+  // Time off period
+  startDate       DateTime
+  endDate         DateTime
+
+  // Reason and status
+  reason          String?       @db.Text
+  status          TimeOffStatus @default(PENDING)
+
+  // Admin approval
+  approvedBy      String?
+  approvedAt      DateTime?
+
+  // Notes
+  notes           String?       @db.Text
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  practitioner    PractitionerProfile @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+
+  @@index([practitionerId])
+  @@index([startDate, endDate])
+  @@index([status])
+}
+
+model AvailabilityOverride {
+  id              String   @id @default(cuid())
+  practitionerId  String
+
+  // Specific date override
+  date            DateTime
+
+  // Override times (if null, day is blocked entirely)
+  startTime       String?  // Format: "09:00"
+  endTime         String?  // Format: "17:00"
+
+  // Reason for override
+  reason          String?  @db.Text
+  isAvailable     Boolean  @default(true) // false = blocked day
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  practitioner    PractitionerProfile @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+
+  @@index([practitionerId])
+  @@index([date])
 }
 
