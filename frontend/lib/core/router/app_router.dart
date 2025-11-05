@@ -28,6 +28,8 @@ import 'package:sana_app/presentation/screens/availability/availability_manageme
 import 'package:sana_app/presentation/screens/admin/admin_dashboard_screen.dart';
 import 'package:sana_app/presentation/screens/admin/user_management_screen.dart';
 import 'package:sana_app/presentation/screens/admin/practitioner_verification_screen.dart';
+import 'package:sana_app/presentation/screens/payments/payment_history_screen.dart';
+import 'package:sana_app/presentation/screens/payments/payout_dashboard_screen.dart';
 import 'package:sana_app/data/models/practitioner.dart';
 import 'package:sana_app/data/models/message.dart';
 
@@ -288,6 +290,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppConstants.routeAdminAppointments,
         builder: (context, state) =>
             const PlaceholderScreen(title: 'Appointment Management'),
+      ),
+      // Phase 4: Payment & Billing Routes
+      GoRoute(
+        path: AppConstants.routePaymentHistory,
+        builder: (context, state) => const PaymentHistoryScreen(),
+      ),
+      GoRoute(
+        path: AppConstants.routePayoutDashboard,
+        builder: (context, state) => const PayoutDashboardScreen(),
       ),
       GoRoute(
         path: AppConstants.routeJournal,

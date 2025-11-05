@@ -98,6 +98,10 @@ class AppConstants {
   static const String routeAdminReviews = '/admin/reviews';
   static const String routeAdminAppointments = '/admin/appointments';
 
+  // Phase 4: Payment & Billing Routes
+  static const String routePaymentHistory = '/payment-history';
+  static const String routePayoutDashboard = '/payout-dashboard';
+
   // User Roles
   static const String roleClient = 'CLIENT';
   static const String rolePractitioner = 'PRACTITIONER';
