@@ -19,6 +19,8 @@ import 'package:sana_app/presentation/screens/notifications_list_screen.dart';
 import 'package:sana_app/presentation/screens/notification_preferences_screen.dart';
 import 'package:sana_app/presentation/screens/analytics/client_analytics_screen.dart';
 import 'package:sana_app/presentation/screens/analytics/practitioner_analytics_screen.dart';
+import 'package:sana_app/presentation/screens/reviews/submit_review_screen.dart';
+import 'package:sana_app/presentation/screens/reviews/reviews_list_screen.dart';
 import 'package:sana_app/data/models/practitioner.dart';
 
 // Splash Screen
@@ -210,6 +212,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/analytics/practitioner',
         builder: (context, state) => const PractitionerAnalyticsScreen(),
+      ),
+      // Phase 4: Reviews Routes
+      GoRoute(
+        path: '/reviews/submit/:appointmentId',
+        builder: (context, state) {
+          final appointmentId = state.pathParameters['appointmentId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+          return SubmitReviewScreen(
+            appointmentId: appointmentId,
+            practitionerName: extra?['practitionerName'] ?? '',
+            sessionTypeName: extra?['sessionTypeName'] ?? '',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/reviews/practitioner/:practitionerId',
+        builder: (context, state) {
+          final practitionerId = state.pathParameters['practitionerId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+          return ReviewsListScreen(
+            practitionerId: practitionerId,
+            practitionerName: extra?['practitionerName'] ?? 'Practitioner',
+          );
+        },
       ),
       GoRoute(
         path: AppConstants.routeJournal,

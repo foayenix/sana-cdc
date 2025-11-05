@@ -76,6 +76,10 @@ class AppConstants {
   static const String routeClientAnalytics = '/analytics/client';
   static const String routePractitionerAnalytics = '/analytics/practitioner';
 
+  // Phase 4: Reviews Routes
+  static const String routeSubmitReview = '/reviews/submit';
+  static const String routePractitionerReviews = '/reviews/practitioner';
+
   // User Roles
   static const String roleClient = 'CLIENT';
   static const String rolePractitioner = 'PRACTITIONER';
