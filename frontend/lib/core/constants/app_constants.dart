@@ -68,6 +68,10 @@ class AppConstants {
   static const String routeSessionNotes = '/session-notes';
   static const String routeOutcomes = '/outcomes';
 
+  // Phase 4: Notifications Routes
+  static const String routeNotifications = '/notifications';
+  static const String routeNotificationPreferences = '/notification-preferences';
+
   // User Roles
   static const String roleClient = 'CLIENT';
   static const String rolePractitioner = 'PRACTITIONER';

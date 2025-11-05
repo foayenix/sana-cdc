@@ -15,6 +15,8 @@ import 'package:sana_app/presentation/screens/appointments/appointments_list_scr
 import 'package:sana_app/presentation/screens/appointments/payment_screen.dart';
 import 'package:sana_app/presentation/screens/practitioner/session_notes_screen.dart';
 import 'package:sana_app/presentation/screens/practitioner/outcomes_screen.dart';
+import 'package:sana_app/presentation/screens/notifications_list_screen.dart';
+import 'package:sana_app/presentation/screens/notification_preferences_screen.dart';
 import 'package:sana_app/data/models/practitioner.dart';
 
 // Splash Screen
@@ -188,6 +190,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppConstants.routeOutcomes,
         builder: (context, state) => const OutcomesScreen(),
+      ),
+      // Phase 4: Notifications Routes
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsListScreen(),
+      ),
+      GoRoute(
+        path: '/notification-preferences',
+        builder: (context, state) => const NotificationPreferencesScreen(),
       ),
       GoRoute(
         path: AppConstants.routeJournal,
