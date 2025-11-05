@@ -40,6 +40,24 @@ enum OutcomeRating {
   MUCH_WORSE
 }
 
+enum NotificationType {
+  APPOINTMENT_CONFIRMATION
+  APPOINTMENT_REMINDER_24H
+  APPOINTMENT_REMINDER_1H
+  APPOINTMENT_CANCELLED
+  APPOINTMENT_RESCHEDULED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  PAYMENT_REFUNDED
+  SESSION_NOTE_ADDED
+  OUTCOME_RECORDED
+  PRACTITIONER_VERIFIED
+  PRACTITIONER_REJECTED
+  NEW_MESSAGE
+  REVIEW_RECEIVED
+  SYSTEM_ANNOUNCEMENT
+}
+
 // Models
 model User {
   id            String   @id @default(cuid())
@@ -59,6 +77,8 @@ model User {
   practitionerProfile PractitionerProfile?
   clientAppointments  Appointment[] @relation("ClientAppointments")
   practitionerAppointments Appointment[] @relation("PractitionerAppointments")
+  notifications       Notification[]
+  notificationPreference NotificationPreference?
 
   @@index([email])
   @@index([googleId])
@@ -286,4 +306,63 @@ model RecommendationTemplate {
 
   @@index([category])
   @@index([slug])
+}
+
+// Phase 4: Notifications Module
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  type        NotificationType
+  title       String
+  message     String           @db.Text
+  data        Json?            // Additional context (appointmentId, etc.)
+
+  // Delivery status
+  read        Boolean          @default(false)
+  readAt      DateTime?
+  sent        Boolean          @default(false)
+  sentAt      DateTime?
+
+  // Channels
+  emailSent   Boolean          @default(false)
+  smsSent     Boolean          @default(false)
+  pushSent    Boolean          @default(false)
+
+  createdAt   DateTime         @default(now())
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@index([type])
+}
+
+model NotificationPreference {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+
+  // Channel preferences
+  emailEnabled           Boolean  @default(true)
+  smsEnabled             Boolean  @default(false)
+  pushEnabled            Boolean  @default(true)
+
+  // Notification type preferences
+  appointmentReminders   Boolean  @default(true)
+  appointmentUpdates     Boolean  @default(true)
+  paymentNotifications   Boolean  @default(true)
+  sessionNotes           Boolean  @default(true)
+  outcomeNotifications   Boolean  @default(true)
+  messageNotifications   Boolean  @default(true)
+  promotionalEmails      Boolean  @default(false)
+  systemAnnouncements    Boolean  @default(true)
+
+  // Phone for SMS (optional)
+  phoneNumber            String?
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
