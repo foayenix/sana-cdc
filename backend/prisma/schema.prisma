@@ -1,0 +1,289 @@
+// Prisma Schema for SANA MVP
+// Database: PostgreSQL (Neon)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  CLIENT
+  PRACTITIONER
+  ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum OutcomeRating {
+  MUCH_BETTER
+  SLIGHTLY_BETTER
+  SAME
+  SLIGHTLY_WORSE
+  MUCH_WORSE
+}
+
+// Models
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String?
+  name          String
+  role          UserRole @default(CLIENT)
+
+  googleId      String?  @unique
+  profilePhoto  String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastLoginAt   DateTime?
+
+  clientProfile       ClientProfile?
+  practitionerProfile PractitionerProfile?
+  clientAppointments  Appointment[] @relation("ClientAppointments")
+  practitionerAppointments Appointment[] @relation("PractitionerAppointments")
+
+  @@index([email])
+  @@index([googleId])
+}
+
+model ClientProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+
+  // Health Questionnaire
+  questionnaireCompleted Boolean @default(false)
+  questionnaireData      Json?
+
+  // SANA Health Score
+  currentScore    Int      @default(0)
+  currentStatus   String?  // NEEDS_SUPPORT, REBUILDING, BALANCED, THRIVING, RADIANT
+  domainScores    Json?    // {physical, mental, lifestyle, social}
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyCheckins   DailyCheckin[]
+  journals        Journal[]
+  outcomes        ClientOutcome[]
+
+  @@index([userId])
+}
+
+model PractitionerProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  practiceName      String?
+  bio               String?  @db.Text
+  postcode          String?
+  phone             String?
+  website           String?
+
+  // Professional info
+  specialties       String[] // Array of strings
+  modalities        String[]
+  languagesSpoken   String[]
+  yearsOfPractice   Int?
+  qualifications    String?  @db.Text
+
+  // Verification
+  verificationStatus VerificationStatus @default(PENDING)
+  credentialFiles   String[] // S3 URLs
+  verifiedBadges    String[] // CNHC, GHR, FHT, etc.
+
+  // SANA Index
+  sanaIndexScore    Int      @default(0)
+  sanaIndexPublic   Boolean  @default(true)
+
+  // Availability
+  availabilityData  Json? // Recurring schedule
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionTypes  SessionType[]
+  appointments  Appointment[]
+  sessionNotes  SessionNote[]
+  stripeAccount StripeAccount?
+
+  @@index([userId])
+  @@index([verificationStatus])
+  @@index([postcode])
+}
+
+model SessionType {
+  id            String  @id @default(cuid())
+  practitionerId String
+  name          String  // "Initial Consultation"
+  duration      Int     // minutes
+  price         Int     // pence (e.g., 5000 = £50.00)
+  description   String? @db.Text
+  isActive      Boolean @default(true)
+  availableFor  String  // "in-person" | "remote" | "both"
+
+  practitioner  PractitionerProfile @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+  appointments  Appointment[]
+
+  @@index([practitionerId])
+}
+
+model Appointment {
+  id             String            @id @default(cuid())
+  clientId       String
+  practitionerId String
+  sessionTypeId  String
+
+  scheduledAt    DateTime
+  duration       Int               // minutes
+  status         AppointmentStatus @default(SCHEDULED)
+
+  // Location
+  isRemote       Boolean
+  zoomLink       String?
+  address        String?
+
+  // Payment
+  stripePaymentId String?
+  amountPaid      Int?            // pence
+
+  // Notes
+  clientNotes    String?          @db.Text
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  client        User                @relation("ClientAppointments", fields: [clientId], references: [id])
+  practitioner  User                @relation("PractitionerAppointments", fields: [practitionerId], references: [id])
+  sessionType   SessionType         @relation(fields: [sessionTypeId], references: [id])
+  sessionNote   SessionNote?
+  outcome       ClientOutcome?
+
+  @@index([clientId])
+  @@index([practitionerId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+model SessionNote {
+  id             String   @id @default(cuid())
+  appointmentId  String   @unique
+  practitionerId String
+
+  subjective     String?  @db.Text
+  objective      String?  @db.Text
+  assessment     String?  @db.Text
+  plan           String?  @db.Text
+  treatmentData  Json?    // Structured treatment items
+  privateNotes   String?  @db.Text
+
+  finalized      Boolean  @default(false)
+  finalizedAt    DateTime?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  appointment   Appointment         @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  practitioner  PractitionerProfile @relation(fields: [practitionerId], references: [id])
+
+  @@index([appointmentId])
+  @@index([practitionerId])
+}
+
+model ClientOutcome {
+  id            String        @id @default(cuid())
+  appointmentId String        @unique
+  clientId      String
+
+  rating        OutcomeRating
+  wouldRecommend Boolean?
+  comments      String?       @db.Text
+
+  recordedAt    DateTime      @default(now())
+
+  appointment   Appointment    @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  client        ClientProfile  @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+  @@index([appointmentId])
+}
+
+model DailyCheckin {
+  id        String   @id @default(cuid())
+  clientId  String
+  date      DateTime @default(now())
+
+  sleepQuality Int // 1-5
+  energyLevel  Int // 1-5
+  mood         Int // 1-5
+  stressLevel  Int // 1-5
+
+  client    ClientProfile @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, date])
+  @@index([clientId])
+  @@index([date])
+}
+
+model Journal {
+  id        String   @id @default(cuid())
+  clientId  String
+  content   String   @db.Text
+  mood      Int?     // 1-5
+  tags      String[] // #sleep, #mood, etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client    ClientProfile @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([createdAt])
+}
+
+model StripeAccount {
+  id              String   @id @default(cuid())
+  practitionerId  String   @unique
+  stripeAccountId String   @unique
+  enabled         Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  practitioner    PractitionerProfile @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+
+  @@index([stripeAccountId])
+}
+
+model RecommendationTemplate {
+  id          String   @id @default(cuid())
+  slug        String   @unique // "improve-sleep"
+  title       String   // "Improve Your Sleep"
+  category    String   // "Sleep", "Stress", etc.
+  content     String   @db.Text // Markdown content
+  citations   Json     // Array of research links
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([slug])
+}
