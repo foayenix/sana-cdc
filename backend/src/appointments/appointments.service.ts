@@ -5,7 +5,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AppointmentStatus } from '@prisma/client';
+import { AppointmentStatus, NotificationType } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 interface CreateAppointmentDto {
   practitionerId: string;
@@ -22,7 +23,10 @@ interface UpdateAppointmentDto {
 
 @Injectable()
 export class AppointmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   // Create appointment (client books with practitioner)
   async createAppointment(clientId: string, createDto: CreateAppointmentDto) {
@@ -115,6 +119,37 @@ export class AppointmentsService {
         },
       },
     });
+
+    // Send booking confirmation notification to client
+    try {
+      const appointmentDateStr = appointment.appointmentDate.toLocaleString(
+        'en-GB',
+        {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        },
+      );
+
+      await this.notificationsService.sendNotification({
+        userId: clientId,
+        type: NotificationType.APPOINTMENT_CONFIRMATION,
+        title: 'Appointment Booked Successfully',
+        message: `Your appointment with ${appointment.practitioner.user.name} for ${appointment.sessionType.name} has been scheduled for ${appointmentDateStr}.`,
+        data: {
+          appointmentId: appointment.id,
+          practitionerId: appointment.practitionerId,
+          sessionTypeId: appointment.sessionTypeId,
+        },
+        sendEmail: true,
+        sendPush: true,
+      });
+    } catch (error) {
+      // Log error but don't fail appointment creation
+      console.error('Failed to send appointment notification:', error);
+    }
 
     return appointment;
   }
@@ -372,6 +407,42 @@ export class AppointmentsService {
       },
     });
 
+    // Send cancellation notification to both client and practitioner
+    try {
+      const appointmentDateStr = cancelledAppointment.appointmentDate.toLocaleString(
+        'en-GB',
+        {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        },
+      );
+
+      // Notify the other party (if client cancelled, notify practitioner and vice versa)
+      const recipientId =
+        userId === appointment.clientId
+          ? appointment.practitionerId
+          : appointment.clientId;
+
+      await this.notificationsService.sendNotification({
+        userId: recipientId,
+        type: NotificationType.APPOINTMENT_CANCELLED,
+        title: 'Appointment Cancelled',
+        message: `The appointment for ${cancelledAppointment.sessionType.name} scheduled for ${appointmentDateStr} has been cancelled. ${cancellationNotes}`,
+        data: {
+          appointmentId: cancelledAppointment.id,
+          practitionerId: cancelledAppointment.practitionerId,
+          sessionTypeId: cancelledAppointment.sessionTypeId,
+        },
+        sendEmail: true,
+        sendPush: true,
+      });
+    } catch (error) {
+      console.error('Failed to send cancellation notification:', error);
+    }
+
     return cancelledAppointment;
   }
 
@@ -410,8 +481,47 @@ export class AppointmentsService {
           },
         },
         sessionType: true,
+        practitioner: {
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
+
+    // Send confirmation notification to client
+    try {
+      const appointmentDateStr = confirmedAppointment.appointmentDate.toLocaleString(
+        'en-GB',
+        {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        },
+      );
+
+      await this.notificationsService.sendNotification({
+        userId: confirmedAppointment.clientId,
+        type: NotificationType.APPOINTMENT_CONFIRMATION,
+        title: 'Appointment Confirmed',
+        message: `Your appointment for ${confirmedAppointment.sessionType.name} on ${appointmentDateStr} has been confirmed by ${confirmedAppointment.practitioner.user.name}.`,
+        data: {
+          appointmentId: confirmedAppointment.id,
+          practitionerId: confirmedAppointment.practitionerId,
+          sessionTypeId: confirmedAppointment.sessionTypeId,
+        },
+        sendEmail: true,
+        sendPush: true,
+      });
+    } catch (error) {
+      console.error('Failed to send confirmation notification:', error);
+    }
 
     return confirmedAppointment;
   }

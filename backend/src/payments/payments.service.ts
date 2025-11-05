@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '@prisma/client';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -16,6 +18,7 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
+    private readonly notificationsService: NotificationsService,
   ) {
     const stripeSecretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
     if (!stripeSecretKey) {
@@ -169,6 +172,36 @@ export class PaymentsService {
         where: { id: payment.appointmentId },
         data: { status: 'CONFIRMED' },
       });
+
+      // Send payment success notification to client
+      try {
+        const appointmentDateStr = updatedPayment.appointment.appointmentDate.toLocaleString(
+          'en-GB',
+          {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          },
+        );
+
+        await this.notificationsService.sendNotification({
+          userId: updatedPayment.appointment.clientId,
+          type: NotificationType.PAYMENT_SUCCESS,
+          title: 'Payment Successful',
+          message: `Your payment of £${(updatedPayment.amount / 100).toFixed(2)} for ${updatedPayment.appointment.sessionType.name} on ${appointmentDateStr} has been processed successfully.`,
+          data: {
+            paymentId: updatedPayment.id,
+            appointmentId: updatedPayment.appointmentId,
+            amount: updatedPayment.amount,
+          },
+          sendEmail: true,
+          sendPush: true,
+        });
+      } catch (error) {
+        this.logger.error('Failed to send payment success notification:', error);
+      }
     }
 
     this.logger.log(
@@ -330,6 +363,14 @@ export class PaymentsService {
   private async handlePaymentFailed(paymentIntentId: string) {
     const payment = await this.prisma.payment.findFirst({
       where: { stripePaymentIntentId: paymentIntentId },
+      include: {
+        appointment: {
+          include: {
+            sessionType: true,
+            client: true,
+          },
+        },
+      },
     });
 
     if (payment) {
@@ -338,6 +379,25 @@ export class PaymentsService {
         data: { status: 'FAILED' },
       });
 
+      // Send payment failed notification to client
+      try {
+        await this.notificationsService.sendNotification({
+          userId: payment.appointment.clientId,
+          type: NotificationType.PAYMENT_FAILED,
+          title: 'Payment Failed',
+          message: `Your payment for ${payment.appointment.sessionType.name} could not be processed. Please try again or contact support.`,
+          data: {
+            paymentId: payment.id,
+            appointmentId: payment.appointmentId,
+            amount: payment.amount,
+          },
+          sendEmail: true,
+          sendPush: true,
+        });
+      } catch (error) {
+        this.logger.error('Failed to send payment failed notification:', error);
+      }
+
       this.logger.log(`Payment ${payment.id} marked as FAILED`);
     }
   }
@@ -345,6 +405,14 @@ export class PaymentsService {
   private async handleRefund(paymentIntentId: string) {
     const payment = await this.prisma.payment.findFirst({
       where: { stripePaymentIntentId: paymentIntentId },
+      include: {
+        appointment: {
+          include: {
+            sessionType: true,
+            client: true,
+          },
+        },
+      },
     });
 
     if (payment && payment.status !== 'REFUNDED') {
@@ -355,6 +423,25 @@ export class PaymentsService {
           refundedAt: new Date(),
         },
       });
+
+      // Send refund notification to client
+      try {
+        await this.notificationsService.sendNotification({
+          userId: payment.appointment.clientId,
+          type: NotificationType.PAYMENT_REFUNDED,
+          title: 'Refund Processed',
+          message: `Your payment of £${(payment.amount / 100).toFixed(2)} for ${payment.appointment.sessionType.name} has been refunded.`,
+          data: {
+            paymentId: payment.id,
+            appointmentId: payment.appointmentId,
+            amount: payment.amount,
+          },
+          sendEmail: true,
+          sendPush: true,
+        });
+      } catch (error) {
+        this.logger.error('Failed to send refund notification:', error);
+      }
 
       this.logger.log(`Payment ${payment.id} marked as REFUNDED`);
     }
