@@ -137,3 +137,9 @@ class ApiService {
 final apiServiceProvider = Provider<ApiService>((ref) {
   return ApiService();
 });
+
+// Provider for Dio instance (used by other services)
+final dioProvider = Provider<Dio>((ref) {
+  final apiService = ref.watch(apiServiceProvider);
+  return apiService.dio;
+});

@@ -44,6 +44,9 @@ dependencies:
   # Calendar
   table_calendar: ^3.0.9
 
+  # Payments
+  flutter_stripe: ^10.1.1
+
   # File Handling
   image_picker: ^1.0.7
   file_picker: ^6.1.1
