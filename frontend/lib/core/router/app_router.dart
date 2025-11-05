@@ -22,7 +22,10 @@ import 'package:sana_app/presentation/screens/analytics/practitioner_analytics_s
 import 'package:sana_app/presentation/screens/reviews/submit_review_screen.dart';
 import 'package:sana_app/presentation/screens/reviews/reviews_list_screen.dart';
 import 'package:sana_app/presentation/screens/search/practitioner_search_screen.dart';
+import 'package:sana_app/presentation/screens/messages/conversations_list_screen.dart';
+import 'package:sana_app/presentation/screens/messages/chat_screen.dart';
 import 'package:sana_app/data/models/practitioner.dart';
+import 'package:sana_app/data/models/message.dart';
 
 // Splash Screen
 class SplashScreen extends ConsumerStatefulWidget {
@@ -234,6 +237,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return ReviewsListScreen(
             practitionerId: practitionerId,
             practitionerName: extra?['practitionerName'] ?? 'Practitioner',
+          );
+        },
+      ),
+      // Phase 4: Messaging Routes
+      GoRoute(
+        path: AppConstants.routeMessages,
+        builder: (context, state) => const ConversationsListScreen(),
+      ),
+      GoRoute(
+        path: '/messages/:id',
+        builder: (context, state) {
+          final conversationId = state.pathParameters['id']!;
+          final extra = state.extra as Map<String, dynamic>?;
+          return ChatScreen(
+            conversationId: conversationId,
+            conversation: extra?['conversation'] as Conversation?,
+            otherUser: extra?['otherUser'] as ConversationUser?,
           );
         },
       ),

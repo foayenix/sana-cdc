@@ -101,3 +101,6 @@ flutter:
   #       - asset: assets/fonts/CustomFont-Regular.ttf
   #       - asset: assets/fonts/CustomFont-Bold.ttf
   #         weight: 700
+
+  # Phase 4 Module 5: In-App Messaging
+  # socket_io_client: ^2.0.3+1  # WebSocket client for real-time messaging

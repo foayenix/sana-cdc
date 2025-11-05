@@ -84,6 +84,10 @@ class AppConstants {
   static const String routePractitionerSearch = '/practitioners';
   static const String routePractitionerProfile = '/practitioner-profile';
 
+  // Phase 4: Messaging Routes
+  static const String routeMessages = '/messages';
+  static const String routeChat = '/messages/:id';
+
   // User Roles
   static const String roleClient = 'CLIENT';
   static const String rolePractitioner = 'PRACTITIONER';
