@@ -72,6 +72,10 @@ class AppConstants {
   static const String routeNotifications = '/notifications';
   static const String routeNotificationPreferences = '/notification-preferences';
 
+  // Phase 4: Analytics Routes
+  static const String routeClientAnalytics = '/analytics/client';
+  static const String routePractitionerAnalytics = '/analytics/practitioner';
+
   // User Roles
   static const String roleClient = 'CLIENT';
   static const String rolePractitioner = 'PRACTITIONER';

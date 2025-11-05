@@ -17,6 +17,8 @@ import 'package:sana_app/presentation/screens/practitioner/session_notes_screen.
 import 'package:sana_app/presentation/screens/practitioner/outcomes_screen.dart';
 import 'package:sana_app/presentation/screens/notifications_list_screen.dart';
 import 'package:sana_app/presentation/screens/notification_preferences_screen.dart';
+import 'package:sana_app/presentation/screens/analytics/client_analytics_screen.dart';
+import 'package:sana_app/presentation/screens/analytics/practitioner_analytics_screen.dart';
 import 'package:sana_app/data/models/practitioner.dart';
 
 // Splash Screen
@@ -199,6 +201,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/notification-preferences',
         builder: (context, state) => const NotificationPreferencesScreen(),
+      ),
+      // Phase 4: Analytics Routes
+      GoRoute(
+        path: '/analytics/client',
+        builder: (context, state) => const ClientAnalyticsScreen(),
+      ),
+      GoRoute(
+        path: '/analytics/practitioner',
+        builder: (context, state) => const PractitionerAnalyticsScreen(),
       ),
       GoRoute(
         path: AppConstants.routeJournal,
