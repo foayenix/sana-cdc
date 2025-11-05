@@ -104,6 +104,7 @@ model ClientProfile {
   dailyCheckins   DailyCheckin[]
   journals        Journal[]
   outcomes        ClientOutcome[]
+  reviews         Review[]
 
   @@index([userId])
 }
@@ -144,6 +145,7 @@ model PractitionerProfile {
   appointments  Appointment[]
   sessionNotes  SessionNote[]
   stripeAccount StripeAccount?
+  reviews       Review[]
 
   @@index([userId])
   @@index([verificationStatus])
@@ -196,6 +198,7 @@ model Appointment {
   sessionType   SessionType         @relation(fields: [sessionTypeId], references: [id])
   sessionNote   SessionNote?
   outcome       ClientOutcome?
+  review        Review?
 
   @@index([clientId])
   @@index([practitionerId])
@@ -365,4 +368,37 @@ model NotificationPreference {
   user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+// Phase 4 Module 3: Reviews & Ratings
+model Review {
+  id                String   @id @default(cuid())
+  practitionerId    String
+  clientId          String
+  appointmentId     String   @unique // One review per appointment
+
+  // Rating & Review
+  rating            Int      // 1-5 stars
+  title             String?  // Optional review title
+  comment           String?  @db.Text // Optional review text
+  
+  // Moderation
+  isPublished       Boolean  @default(true) // Can be hidden by admin/practitioner
+  
+  // Reply from practitioner
+  practitionerReply String?  @db.Text
+  repliedAt         DateTime?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  practitioner      PractitionerProfile @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+  client            ClientProfile @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  appointment       Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([practitionerId, isPublished])
+  @@index([clientId])
+  @@index([appointmentId])
+  @@index([rating])
+  @@index([createdAt])
 }

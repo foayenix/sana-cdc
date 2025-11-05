@@ -19,6 +19,7 @@ import { SanaIndexModule } from './sana-index/sana-index.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -59,6 +60,7 @@ import { AppService } from './app.service';
     UploadsModule,
     NotificationsModule,
     AnalyticsModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
