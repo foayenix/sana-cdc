@@ -25,6 +25,9 @@ import 'package:sana_app/presentation/screens/search/practitioner_search_screen.
 import 'package:sana_app/presentation/screens/messages/conversations_list_screen.dart';
 import 'package:sana_app/presentation/screens/messages/chat_screen.dart';
 import 'package:sana_app/presentation/screens/availability/availability_management_screen.dart';
+import 'package:sana_app/presentation/screens/admin/admin_dashboard_screen.dart';
+import 'package:sana_app/presentation/screens/admin/user_management_screen.dart';
+import 'package:sana_app/presentation/screens/admin/practitioner_verification_screen.dart';
 import 'package:sana_app/data/models/practitioner.dart';
 import 'package:sana_app/data/models/message.dart';
 
@@ -262,6 +265,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppConstants.routeAvailabilityManagement,
         builder: (context, state) => const AvailabilityManagementScreen(),
+      ),
+      // Phase 4: Admin Routes
+      GoRoute(
+        path: AppConstants.routeAdminDashboard,
+        builder: (context, state) => const AdminDashboardScreen(),
+      ),
+      GoRoute(
+        path: AppConstants.routeAdminUsers,
+        builder: (context, state) => const UserManagementScreen(),
+      ),
+      GoRoute(
+        path: AppConstants.routeAdminVerifications,
+        builder: (context, state) => const PractitionerVerificationScreen(),
+      ),
+      GoRoute(
+        path: AppConstants.routeAdminReviews,
+        builder: (context, state) =>
+            const PlaceholderScreen(title: 'Review Moderation'),
+      ),
+      GoRoute(
+        path: AppConstants.routeAdminAppointments,
+        builder: (context, state) =>
+            const PlaceholderScreen(title: 'Appointment Management'),
       ),
       GoRoute(
         path: AppConstants.routeJournal,

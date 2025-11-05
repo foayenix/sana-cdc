@@ -91,6 +91,13 @@ class AppConstants {
   // Phase 4: Availability Routes
   static const String routeAvailabilityManagement = '/availability-management';
 
+  // Phase 4: Admin Routes
+  static const String routeAdminDashboard = '/admin/dashboard';
+  static const String routeAdminUsers = '/admin/users';
+  static const String routeAdminVerifications = '/admin/verifications';
+  static const String routeAdminReviews = '/admin/reviews';
+  static const String routeAdminAppointments = '/admin/appointments';
+
   // User Roles
   static const String roleClient = 'CLIENT';
   static const String rolePractitioner = 'PRACTITIONER';

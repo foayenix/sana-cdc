@@ -23,6 +23,7 @@ import { ReviewsModule } from './reviews/reviews.module';
 import { SearchModule } from './search/search.module';
 import { MessagesModule } from './messages/messages.module';
 import { AvailabilityModule } from './availability/availability.module';
+import { AdminModule } from './admin/admin.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -67,6 +68,7 @@ import { AppService } from './app.service';
     SearchModule,
     MessagesModule,
     AvailabilityModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
