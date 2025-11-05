@@ -80,6 +80,10 @@ class AppConstants {
   static const String routeSubmitReview = '/reviews/submit';
   static const String routePractitionerReviews = '/reviews/practitioner';
 
+  // Phase 4: Search Routes
+  static const String routePractitionerSearch = '/practitioners';
+  static const String routePractitionerProfile = '/practitioner-profile';
+
   // User Roles
   static const String roleClient = 'CLIENT';
   static const String rolePractitioner = 'PRACTITIONER';

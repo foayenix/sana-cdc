@@ -21,6 +21,7 @@ import 'package:sana_app/presentation/screens/analytics/client_analytics_screen.
 import 'package:sana_app/presentation/screens/analytics/practitioner_analytics_screen.dart';
 import 'package:sana_app/presentation/screens/reviews/submit_review_screen.dart';
 import 'package:sana_app/presentation/screens/reviews/reviews_list_screen.dart';
+import 'package:sana_app/presentation/screens/search/practitioner_search_screen.dart';
 import 'package:sana_app/data/models/practitioner.dart';
 
 // Splash Screen
@@ -150,8 +151,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppConstants.routePractitioners,
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Find Practitioners'),
+        builder: (context, state) => const PractitionerSearchScreen(),
       ),
       // Phase 3: Appointments & Payments Routes
       GoRoute(
