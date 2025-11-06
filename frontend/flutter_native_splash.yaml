@@ -1,0 +1,29 @@
+flutter_native_splash:
+  # Background color for splash screen
+  color: "#4A90E2"
+
+  # Splash logo image
+  image: assets/images/splash_logo.png
+
+  # Branding (bottom of screen)
+  branding: assets/images/sana_wordmark.png
+  branding_mode: bottom
+
+  # Android 12+ specific configuration
+  android_12:
+    image: assets/images/splash_logo.png
+    color: "#4A90E2"
+    icon_background_color: "#4A90E2"
+    branding: assets/images/sana_wordmark.png
+
+  # Platform-specific settings
+  android: true
+  ios: true
+  web: true
+
+  # Fullscreen splash
+  fullscreen: true
+
+  # iOS Info.plist files to update
+  info_plist_files:
+    - 'ios/Runner/Info.plist'
