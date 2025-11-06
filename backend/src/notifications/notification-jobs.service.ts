@@ -26,7 +26,7 @@ export class NotificationJobsService {
       // Find appointments that are 24 hours away
       const appointments = await this.prisma.appointment.findMany({
         where: {
-          appointmentDate: {
+          scheduledAt: {
             gte: in24Hours,
             lt: in25Hours,
           },
@@ -66,7 +66,7 @@ export class NotificationJobsService {
         }
 
         // Send reminder to client
-        const appointmentDateStr = appointment.appointmentDate.toLocaleString('en-GB', {
+        const appointmentDateStr = appointment.scheduledAt.toLocaleString('en-GB', {
           day: '2-digit',
           month: 'long',
           year: 'numeric',
@@ -108,7 +108,7 @@ export class NotificationJobsService {
       // Find appointments that are 1 hour away
       const appointments = await this.prisma.appointment.findMany({
         where: {
-          appointmentDate: {
+          scheduledAt: {
             gte: in1Hour,
             lt: in90Minutes,
           },
@@ -148,7 +148,7 @@ export class NotificationJobsService {
         }
 
         // Send reminder to client
-        const appointmentDateStr = appointment.appointmentDate.toLocaleString('en-GB', {
+        const appointmentDateStr = appointment.scheduledAt.toLocaleString('en-GB', {
           hour: '2-digit',
           minute: '2-digit',
         });

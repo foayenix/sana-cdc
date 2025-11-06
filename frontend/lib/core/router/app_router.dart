@@ -15,8 +15,8 @@ import 'package:sana_app/presentation/screens/appointments/appointments_list_scr
 import 'package:sana_app/presentation/screens/appointments/payment_screen.dart';
 import 'package:sana_app/presentation/screens/practitioner/session_notes_screen.dart';
 import 'package:sana_app/presentation/screens/practitioner/outcomes_screen.dart';
-import 'package:sana_app/presentation/screens/notifications_list_screen.dart';
-import 'package:sana_app/presentation/screens/notification_preferences_screen.dart';
+import 'package:sana_app/presentation/screens/notifications/notifications_list_screen.dart';
+import 'package:sana_app/presentation/screens/notifications/notification_preferences_screen.dart';
 import 'package:sana_app/presentation/screens/analytics/client_analytics_screen.dart';
 import 'package:sana_app/presentation/screens/analytics/practitioner_analytics_screen.dart';
 import 'package:sana_app/presentation/screens/reviews/submit_review_screen.dart';
