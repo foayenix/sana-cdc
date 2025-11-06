@@ -37,17 +37,21 @@ export class ErrorTracker {
       return;
     }
 
-    // TODO: Initialize Sentry
-    // import * as Sentry from '@sentry/node';
-    // Sentry.init({
-    //   dsn: config.dsn,
-    //   environment: config.environment,
-    //   release: config.release,
-    //   tracesSampleRate: 0.1, // 10% of transactions
-    // });
+    // Initialize Sentry
+    try {
+      const Sentry = require('@sentry/node');
+      Sentry.init({
+        dsn: config.dsn,
+        environment: config.environment,
+        release: config.release,
+        tracesSampleRate: 0.1, // 10% of transactions
+      });
 
-    this.sentryEnabled = true;
-    this.logger.log('Error tracking initialized successfully');
+      this.sentryEnabled = true;
+      this.logger.log('Error tracking initialized successfully');
+    } catch (error) {
+      this.logger.error('Failed to initialize Sentry:', error);
+    }
   }
 
   /**
@@ -62,10 +66,14 @@ export class ErrorTracker {
 
     // Send to error tracking service
     if (this.sentryEnabled) {
-      // TODO: Send to Sentry
-      // Sentry.captureException(error, {
-      //   extra: context,
-      // });
+      try {
+        const Sentry = require('@sentry/node');
+        Sentry.captureException(error, {
+          extra: context,
+        });
+      } catch (err) {
+        this.logger.error('Failed to send exception to Sentry:', err);
+      }
     }
 
     // Could also send to custom logging service, Slack, etc.
@@ -97,11 +105,15 @@ export class ErrorTracker {
 
     // Send to error tracking service
     if (this.sentryEnabled) {
-      // TODO: Send to Sentry
-      // Sentry.captureMessage(message, {
-      //   level,
-      //   extra: context,
-      // });
+      try {
+        const Sentry = require('@sentry/node');
+        Sentry.captureMessage(message, {
+          level,
+          extra: context,
+        });
+      } catch (err) {
+        this.logger.error('Failed to send message to Sentry:', err);
+      }
     }
 
     this.sendToCustomLogger(level, message, context);
@@ -117,12 +129,16 @@ export class ErrorTracker {
     role?: string;
   }): void {
     if (this.sentryEnabled) {
-      // TODO: Set user in Sentry
-      // Sentry.setUser({
-      //   id: user.id,
-      //   email: user.email,
-      //   role: user.role,
-      // });
+      try {
+        const Sentry = require('@sentry/node');
+        Sentry.setUser({
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        });
+      } catch (err) {
+        this.logger.error('Failed to set user in Sentry:', err);
+      }
     }
   }
 
@@ -131,8 +147,12 @@ export class ErrorTracker {
    */
   static clearUser(): void {
     if (this.sentryEnabled) {
-      // TODO: Clear user in Sentry
-      // Sentry.setUser(null);
+      try {
+        const Sentry = require('@sentry/node');
+        Sentry.setUser(null);
+      } catch (err) {
+        this.logger.error('Failed to clear user in Sentry:', err);
+      }
     }
   }
 
@@ -141,12 +161,16 @@ export class ErrorTracker {
    */
   static addBreadcrumb(message: string, data?: Record<string, any>): void {
     if (this.sentryEnabled) {
-      // TODO: Add breadcrumb in Sentry
-      // Sentry.addBreadcrumb({
-      //   message,
-      //   data,
-      //   timestamp: Date.now() / 1000,
-      // });
+      try {
+        const Sentry = require('@sentry/node');
+        Sentry.addBreadcrumb({
+          message,
+          data,
+          timestamp: Date.now() / 1000,
+        });
+      } catch (err) {
+        this.logger.error('Failed to add breadcrumb in Sentry:', err);
+      }
     }
   }
 

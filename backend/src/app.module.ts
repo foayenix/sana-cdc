@@ -26,6 +26,8 @@ import { AvailabilityModule } from './availability/availability.module';
 import { AdminModule } from './admin/admin.module';
 import { PaymentHistoryModule } from './payment-history/payment-history.module';
 import { PayoutModule } from './payout/payout.module';
+import { StripeConnectModule } from './stripe-connect/stripe-connect.module';
+import { LegalModule } from './legal/legal.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -73,6 +75,8 @@ import { AppService } from './app.service';
     AdminModule,
     PaymentHistoryModule,
     PayoutModule,
+    StripeConnectModule,
+    LegalModule,
   ],
   controllers: [AppController],
   providers: [AppService],

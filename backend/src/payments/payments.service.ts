@@ -29,7 +29,7 @@ export class PaymentsService {
     });
   }
 
-  // Create payment intent for appointment
+  // Create payment intent for appointment with Stripe Connect
   async createPaymentIntent(userId: string, appointmentId: string) {
     // Get appointment details
     const appointment = await this.prisma.appointment.findUnique({
@@ -39,6 +39,7 @@ export class PaymentsService {
         practitioner: {
           include: {
             user: true,
+            stripeAccount: true,
           },
         },
         client: {
@@ -84,9 +85,22 @@ export class PaymentsService {
       };
     }
 
-    // Create Stripe payment intent
+    // Calculate fees (10% platform fee)
     const amount = Math.round(appointment.sessionType.priceGBP * 100); // Convert to pence
-    const paymentIntent = await this.stripe.paymentIntents.create({
+    const platformFeePercentage = 0.10; // 10% platform fee
+    const platformFee = Math.round(amount * platformFeePercentage);
+
+    // Estimate Stripe fee (1.5% + 20p for UK cards)
+    const stripeFee = Math.round(amount * 0.015 + 20);
+
+    // Calculate net amount to practitioner
+    const netAmount = amount - platformFee - stripeFee;
+
+    // Check if practitioner has Stripe Connect account
+    const stripeAccount = appointment.practitioner.stripeAccount;
+
+    // Create payment intent parameters
+    const paymentIntentParams: any = {
       amount,
       currency: 'gbp',
       metadata: {
@@ -94,9 +108,29 @@ export class PaymentsService {
         clientId: appointment.clientId,
         practitionerId: appointment.practitionerId,
         sessionTypeName: appointment.sessionType.name,
+        platformFee: platformFee.toString(),
+        netAmount: netAmount.toString(),
       },
       description: `Payment for ${appointment.sessionType.name} with ${appointment.practitioner.user.name}`,
-    });
+    };
+
+    // If practitioner has Stripe Connect account, use destination charges
+    if (stripeAccount && stripeAccount.enabled) {
+      paymentIntentParams.application_fee_amount = platformFee;
+      paymentIntentParams.transfer_data = {
+        destination: stripeAccount.stripeAccountId,
+      };
+      this.logger.log(
+        `Creating payment with Stripe Connect for practitioner ${appointment.practitionerId}, platform fee: £${(platformFee / 100).toFixed(2)}`,
+      );
+    } else {
+      this.logger.warn(
+        `Practitioner ${appointment.practitionerId} does not have Stripe Connect enabled. Payment will be held on platform account.`,
+      );
+    }
+
+    // Create Stripe payment intent
+    const paymentIntent = await this.stripe.paymentIntents.create(paymentIntentParams);
 
     // Create payment record
     const payment = await this.prisma.payment.create({
@@ -107,6 +141,9 @@ export class PaymentsService {
         status: 'PENDING',
         stripePaymentIntentId: paymentIntent.id,
         stripeClientSecret: paymentIntent.client_secret,
+        platformFee,
+        stripeFee,
+        netAmount,
       },
     });
 
@@ -118,6 +155,8 @@ export class PaymentsService {
       clientSecret: paymentIntent.client_secret,
       paymentId: payment.id,
       amount: payment.amount,
+      platformFee,
+      netAmount,
     };
   }
 

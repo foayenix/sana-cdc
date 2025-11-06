@@ -1,7 +1,8 @@
-import { Controller, Get, Patch, Delete, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Delete, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { DeleteAccountDto } from './dto/delete-account.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -31,10 +32,20 @@ export class UsersController {
 
   /**
    * DELETE /api/users/account
-   * Delete user account
+   * Delete user account (GDPR)
    */
   @Delete('account')
-  async deleteAccount(@CurrentUser() user: any) {
-    return this.usersService.deleteAccount(user.id);
+  @HttpCode(HttpStatus.OK)
+  async deleteAccount(@CurrentUser() user: any, @Body() deleteDto: DeleteAccountDto) {
+    return this.usersService.deleteAccount(user.id, deleteDto);
+  }
+
+  /**
+   * GET /api/users/export-data
+   * Export user data (GDPR data portability)
+   */
+  @Get('export-data')
+  async exportData(@CurrentUser() user: any) {
+    return this.usersService.exportUserData(user.id);
   }
 }

@@ -3,8 +3,11 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '@prisma/client';
 
 interface CreateOutcomeDto {
   appointmentId: string;
@@ -23,7 +26,12 @@ interface UpdateOutcomeDto {
 
 @Injectable()
 export class OutcomesService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(OutcomesService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   // Create client outcome (practitioner only, after session)
   async createOutcome(practitionerId: string, createDto: CreateOutcomeDto) {
@@ -312,5 +320,63 @@ export class OutcomesService {
     });
 
     return { success: true, message: 'Outcome deleted' };
+  }
+
+  /**
+   * Send outcome survey email to client after appointment
+   */
+  async sendOutcomeSurveyEmail(appointmentId: string) {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: {
+        client: {
+          include: { user: true },
+        },
+        practitioner: {
+          include: { user: true },
+        },
+        sessionType: true,
+      },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    // Only send for completed appointments
+    if (appointment.status !== 'COMPLETED') {
+      this.logger.warn(`Cannot send survey for non-completed appointment ${appointmentId}`);
+      return;
+    }
+
+    // Check if outcome already submitted
+    const existingOutcome = await this.prisma.clientOutcome.findFirst({
+      where: { appointmentId },
+    });
+
+    if (existingOutcome) {
+      this.logger.log(`Outcome already submitted for appointment ${appointmentId}`);
+      return;
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+    const surveyUrl = `${frontendUrl}/outcomes/submit?appointmentId=${appointmentId}`;
+
+    await this.notificationsService.sendNotification({
+      userId: appointment.clientId,
+      type: NotificationType.OUTCOME_RECORDED,
+      title: 'How was your session?',
+      message: `Please share your feedback about your ${appointment.sessionType.name} session with ${appointment.practitioner.user.name}. Your input helps us improve our services.`,
+      data: {
+        appointmentId,
+        surveyUrl,
+      },
+      sendEmail: true,
+      sendPush: true,
+    });
+
+    this.logger.log(`Outcome survey email sent for appointment ${appointmentId}`);
+
+    return { success: true };
   }
 }
