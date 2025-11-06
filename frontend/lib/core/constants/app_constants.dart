@@ -102,6 +102,10 @@ class AppConstants {
   static const String routePaymentHistory = '/payment-history';
   static const String routePayoutDashboard = '/payout-dashboard';
 
+  // Phase 4: Journal & Wellness Routes
+  static const String routeJournal = '/journal';
+  static const String routeJournalEntry = '/journal/entry';
+
   // User Roles
   static const String roleClient = 'CLIENT';
   static const String rolePractitioner = 'PRACTITIONER';

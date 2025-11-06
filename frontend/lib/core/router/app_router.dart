@@ -30,6 +30,8 @@ import 'package:sana_app/presentation/screens/admin/user_management_screen.dart'
 import 'package:sana_app/presentation/screens/admin/practitioner_verification_screen.dart';
 import 'package:sana_app/presentation/screens/payments/payment_history_screen.dart';
 import 'package:sana_app/presentation/screens/payments/payout_dashboard_screen.dart';
+import 'package:sana_app/presentation/screens/journal/journal_list_screen.dart';
+import 'package:sana_app/presentation/screens/journal/journal_entry_screen.dart';
 import 'package:sana_app/data/models/practitioner.dart';
 import 'package:sana_app/data/models/message.dart';
 
@@ -300,9 +302,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppConstants.routePayoutDashboard,
         builder: (context, state) => const PayoutDashboardScreen(),
       ),
+      // Phase 4: Journal & Wellness Routes
       GoRoute(
         path: AppConstants.routeJournal,
-        builder: (context, state) => const PlaceholderScreen(title: 'Journal'),
+        builder: (context, state) => const JournalListScreen(),
+      ),
+      GoRoute(
+        path: AppConstants.routeJournalEntry,
+        builder: (context, state) {
+          final entryId = state.uri.queryParameters['id'];
+          return JournalEntryScreen(entryId: entryId);
+        },
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
